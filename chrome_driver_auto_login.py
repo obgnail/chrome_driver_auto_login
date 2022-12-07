@@ -1,8 +1,10 @@
 import base64
 import json
 import os
+import shutil
 import sqlite3
 import time
+from contextlib import contextmanager
 from urllib.parse import urlparse
 
 import win32crypt
@@ -40,7 +42,7 @@ def _get_encrypted_cookies_from_file(cookies_file_path, filter_func=None):
             expiry=int(row[5] / 1000000 - 11644473600)
         )
 
-        if filter_func is not None and filter_func(cookie):
+        if filter_func is not None and filter_func(cookie) == True:
             continue
         cookies.append(cookie)
 
@@ -83,6 +85,15 @@ def _decrypt_cookies(crypt_cookies, key):
     return crypt_cookies
 
 
+@contextmanager
+def _copy_file(src):
+    dst = '%s.temp' % time.time()
+    shutil.copyfile(src, dst)
+    yield dst
+    if os.path.exists(dst):
+        os.remove(dst)
+
+
 def get_webdriver(chrome_driver_path, headless=False):
     options = Options()
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
@@ -110,9 +121,10 @@ def add_cookies(driver, url, cookies):
 
 # filter_func: 用于过滤不需要的cookie,可为None
 def get_all_cookies(filter_func=None):
-    cookies_file_path, local_state_file_path = _get_user_file_path()
-    encrypted_cookies = _get_encrypted_cookies_from_file(cookies_file_path, filter_func)
-    key = _get_decrypt_key(local_state_file_path)
+    cookies_file, local_state_file = _get_user_file_path()
+    with _copy_file(cookies_file) as f1, _copy_file(local_state_file) as f2:
+        encrypted_cookies = _get_encrypted_cookies_from_file(f1, filter_func)
+        key = _get_decrypt_key(f2)
     cookies = _decrypt_cookies(encrypted_cookies, key)
     return cookies
 
