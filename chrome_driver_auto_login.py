@@ -2,6 +2,7 @@ import base64
 import ctypes.wintypes
 import json
 import os
+import platform
 import shutil
 import sqlite3
 import time
@@ -22,6 +23,9 @@ __all__ = [
     "add_cookies",
     "auto_login"
 ]
+
+if platform.system().lower() != 'windows':
+    raise "unsupported platform"
 
 
 def _get_user_file_path():
@@ -57,7 +61,7 @@ def _get_encrypted_cookies_from_file(file_path, filter_func=None):
         sql='SELECT host_key, name, encrypted_value, path, is_secure, expires_utc FROM cookies;',
         item_func=lambda row: dict(domain=row[0], name=row[1], value=row[2], path=row[3],
                                    secure=False if row[4] == 0 else True,
-                                   expiry=int(row[5] / 1000000 - 11644473600)),
+                                   expiry=max(int(row[5] / 1000000 - 11644473600), 0)),
         filter_func=filter_func
     )
 
@@ -174,6 +178,8 @@ def add_cookies(driver, url, cookies):
     for cookie in cookies:
         if cookie['domain'] != hostname:
             continue
+        if cookie['expiry'] == 0:
+            del cookie['expiry']
         driver.add_cookie(cookie)
 
 
