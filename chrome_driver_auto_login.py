@@ -1,8 +1,12 @@
+import platform
+
+if platform.system().lower() != 'windows':
+    raise "support windows only"
+
 import base64
 import ctypes.wintypes
 import json
 import os
-import platform
 import shutil
 import sqlite3
 import time
@@ -24,9 +28,6 @@ __all__ = [
     "auto_login"
 ]
 
-if platform.system().lower() != 'windows':
-    raise "unsupported platform"
-
 
 def _get_user_file_path():
     local_lapp_data = os.environ['LOCALAPPDATA']
@@ -45,7 +46,6 @@ def _query_sqlite(file, sql, item_func, filter_func=None):
         conn.close()
 
     result = []
-
     for row in rows:
         data = item_func(row)
         if filter_func is not None and filter_func(data) == True:
@@ -59,8 +59,7 @@ def _get_encrypted_cookies_from_file(file_path, filter_func=None):
     return _query_sqlite(
         file=file_path,
         sql='SELECT host_key, name, encrypted_value, path, is_secure, expires_utc FROM cookies;',
-        item_func=lambda row: dict(domain=row[0], name=row[1], value=row[2], path=row[3],
-                                   secure=False if row[4] == 0 else True,
+        item_func=lambda row: dict(domain=row[0], name=row[1], value=row[2], path=row[3], secure=row[4] != 0,
                                    expiry=max(int(row[5] / 1000000 - 11644473600), 0)),
         filter_func=filter_func
     )
@@ -183,6 +182,7 @@ def add_cookies(driver, url, cookies):
         driver.add_cookie(cookie)
 
 
+# 调用此函数前请关闭Chrome，否则有可能因为文件被占用导致失败
 def get_all_cookies(filter_func=None):
     local_state_file, cookies_file, _ = _get_user_file_path()
     with _copy_file(local_state_file) as f1, _copy_file(cookies_file) as f2:
@@ -192,6 +192,7 @@ def get_all_cookies(filter_func=None):
     return cookies
 
 
+# 调用此函数前请关闭Chrome，否则有可能因为文件被占用导致失败
 def get_all_accounts(filter_func=None):
     local_state_file, _, login_data_file = _get_user_file_path()
     with _copy_file(local_state_file) as f1, _copy_file(login_data_file) as f2:
@@ -223,6 +224,13 @@ def _test_get_all_accounts():
         print(account)
 
 
+def _test_get_all_cookies():
+    cookies = get_all_cookies()
+    for cookie in cookies:
+        print(cookie)
+
+
 if __name__ == '__main__':
     _test_get_all_accounts()
+    # _test_get_all_cookies()
     # _test_auto_login()

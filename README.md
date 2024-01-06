@@ -18,19 +18,21 @@ __all__ = [
 ```python
 # 简单封装，返回webdriver
 def get_webdriver(chrome_driver_path, headless=False):
-	return driver
+    return driver
 
 # 返回当前用户下所有的网站账号密码信息，可用filter_func过滤
+# 调用此函数前请关闭Chrome，否则有可能因为文件被占用导致失败
 def get_all_accounts(filter_func=None):
-  return accounts
+    return accounts
 
 # 返回当前用户下所有的cookie，可用filter_func过滤
+# 调用此函数前请关闭Chrome，否则有可能因为文件被占用导致失败
 def get_all_cookies(filter_func=None):
-  return cookies
+    return cookies
 
 # 使用get_all_cookies()返回的cookies为driver添加url的cookie
 def add_cookies(driver, url, cookies):
-  return 
+    return 
 
 # 自动登录
 def auto_login(chrome_driver_path, url):
@@ -58,8 +60,14 @@ def _test_get_all_accounts():
     for account in accounts:
         print(account)
 
+def _test_get_all_cookies():
+    cookies = get_all_cookies()
+    for cookie in cookies:
+        print(cookie)
+
 if __name__ == '__main__':
     _test_get_all_accounts()
+    _test_get_all_cookies()
     _test_auto_login()
 ```
 
