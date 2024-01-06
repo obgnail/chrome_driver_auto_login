@@ -210,27 +210,27 @@ def auto_login(chrome_driver_path, url):
     return driver
 
 
-def _test_auto_login():
-    chrome_driver_path = r'd:\tmp\chromedriver.exe'
-    url = 'https://bilibili.com'
-    driver = auto_login(chrome_driver_path, url)
-    time.sleep(10)
-    driver.close()
-
-
-def _test_get_all_accounts():
-    accounts = get_all_accounts()
-    for account in accounts:
-        print(account)
-
-
-def _test_get_all_cookies():
-    cookies = get_all_cookies()
-    for cookie in cookies:
-        print(cookie)
-
-
 if __name__ == '__main__':
+    def _test_get_all_accounts():
+        accounts = get_all_accounts()
+        for account in accounts:
+            print(account)
+
+
+    def _test_get_all_cookies():
+        cookies = get_all_cookies()
+        for cookie in cookies:
+            print(cookie)
+
+
+    def _test_auto_login():
+        chrome_driver_path = r'd:\tmp\chromedriver.exe'
+        url = 'https://bilibili.com'
+        driver = auto_login(chrome_driver_path, url)
+        time.sleep(10)
+        driver.close()
+
+
     _test_get_all_accounts()
     # _test_get_all_cookies()
     # _test_auto_login()
